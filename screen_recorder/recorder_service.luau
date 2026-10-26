@@ -28,6 +28,7 @@ local processCheckPending = false
 local stateGeneration = 0
 local regionGeometry = nil
 local pickInProcess = false
+local replayContainer = "mp4"
 local updateDisplay
 local lastStatusKey
 
@@ -288,6 +289,11 @@ local function buildEncoderFlag()
     return if cfg("video_encoder") == "cpu" then "-encoder cpu" else ""
 end
 
+-- "mkv" switches the container (and file extension), anything else keeps mp4.
+local function selectedContainer()
+    return if cfg("container") == "mkv" then "mkv" else "mp4"
+end
+
 -- Capture modes a caller may request. An IPC override outside this set is
 -- discarded so an arbitrary payload can never reach the gpu-screen-recorder
 -- command line.
@@ -386,7 +392,7 @@ local function buildRecordCommand(focusedOutputName, sourceOverride)
     local dir = outputDirectory()
 
     local pattern = cfg("filename_pattern")
-    local filename = `{noctalia.formatTime(pattern)}.mp4`
+    local filename = `{noctalia.formatTime(pattern)}.{selectedContainer()}`
     outputPath = `{dir}{filename}`
 
     local fm = cfg("frame_rate_mode")
@@ -446,8 +452,9 @@ local function buildReplayCommand(focusedOutputName, sourceOverride)
     local encoderFlag = buildEncoderFlag()
     local scriptFlag = buildSaveScriptFlag()
 
+    replayContainer = selectedContainer()
     local regionFlag = if source == "region" and regionGeometry ~= nil then `-region {regionGeometry}` else ""
-    local flags = `-w {source} {regionFlag} -c mp4 -fm {fm} -f {fps} -k {codec} {encoderFlag} {audioFlags} {bitrateFlags} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {scriptFlag} {restore} -v no -o "{dir}"`
+    local flags = `-w {source} {regionFlag} -c {replayContainer} -fm {fm} -f {fps} -k {codec} {encoderFlag} {audioFlags} {bitrateFlags} -cursor {cursor} -cr {cr} {resFlag} -r {duration} -replay-storage {storage} {scriptFlag} {restore} -v no -o "{dir}"`
 
     log(`starting replay buffer: mode={selectedVideoSource(sourceOverride)} target={source} dir={dir} flags=[{flags}]`)
 
@@ -604,14 +611,14 @@ local function saveReplay()
     local pattern = cfg("replay_filename_pattern")
     if pattern ~= nil and pattern ~= "" then
         local dir = outputDirectory()
-        local targetFile = `{dir}{noctalia.formatTime(pattern)}.mp4`
+        local targetFile = `{dir}{noctalia.formatTime(pattern)}.{replayContainer}`
         -- Replay mode only accepts an output directory (-o "{dir}"), so gpu-screen-recorder
-        -- names the file itself as Replay_<timestamp>.mp4 using its own clock when it
-        -- finalizes. Rather than predict that name, poll for the newest Replay_*.mp4 the
+        -- names the file itself as Replay_<timestamp>.<container> using its own clock when it
+        -- finalizes. Rather than predict that name, poll for the newest Replay_*.<container> the
         -- save produced and rename it. `ref` (one second before the SIGUSR1) bounds the
         -- search so an earlier replay sitting in the directory is never picked up.
         local ref = (tonumber(noctalia.formatTime("%s")) or 0) - 1
-        local claim = `f=$(find {shellQuote(dir)} -maxdepth 1 -name 'Replay_*.mp4' -newermt "@{ref}" -printf '%T@ %p\\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-); `
+        local claim = `f=$(find {shellQuote(dir)} -maxdepth 1 -name 'Replay_*.{replayContainer}' -newermt "@{ref}" -printf '%T@ %p\\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-); `
             .. `if [ -n "$f" ]; then mv -n -- "$f" {shellQuote(targetFile)}; else exit 1; fi`
         local attempts = 50
         local function poll()

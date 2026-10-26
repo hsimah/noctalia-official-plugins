@@ -42,6 +42,14 @@
         "limited": "Limited"
       }
     },
+    "container": {
+      "description": "MP4 is the most widely supported; MKV stays readable while recording and if capture is interrupted",
+      "label": "Container",
+      "options": {
+        "mkv": "MKV",
+        "mp4": "MP4"
+      }
+    },
     "copy_to_clipboard": {
       "label": "Copy Path to Clipboard"
     },

@@ -59,6 +59,7 @@ When `video_source` is `region`, starting a capture or replay first opens a
 | `directory` | `folder` | `~/Videos/Recordings` | Output folder, falling back to `~/Videos/Recordings`. |
 | `filename_pattern` | `string` | `recording_%Y%m%d_%H%M%S` | Date-format filename pattern without extension. |
 | `frame_rate` | `int` | `60` | Capture frame rate from 1 to 240. |
+| `container` | `select` | `mp4` | Container and file extension: `mp4` or `mkv`; any other value falls back to `mp4`. |
 | `video_codec` | `select` | `h264` | Video codec: `h264`, `hevc`, `av1`, `vp8`, or `vp9`. |
 | `video_encoder` | `select` | `gpu` | Video encoder: `gpu` (hardware) or `cpu` (software, always H.264). |
 | `video_qp` | `int` | `25` | Constant quality level from 0–51; lower values produce higher quality and larger files. |
