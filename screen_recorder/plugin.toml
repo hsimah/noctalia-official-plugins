@@ -12,7 +12,7 @@
 
 id = "noctalia/screen_recorder"
 name = "Screen Recorder"
-version = "1.4.2"
+version = "1.5.0"
 plugin_api = 17
 author = "noctalia"
 license = "MIT"
@@ -63,6 +63,17 @@ default = "vfr"
 options = [
   { value = "vfr", label_key = "settings.frame_rate_mode.options.vfr" },
   { value = "cfr", label_key = "settings.frame_rate_mode.options.cfr" },
+]
+
+[[setting]]
+key = "container"
+type = "select"
+label_key = "settings.container.label"
+description_key = "settings.container.description"
+default = "mp4"
+options = [
+  { value = "mp4", label_key = "settings.container.options.mp4" },
+  { value = "mkv", label_key = "settings.container.options.mkv" },
 ]
 
 [[setting]]
